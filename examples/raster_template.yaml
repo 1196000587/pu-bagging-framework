@@ -1,0 +1,60 @@
+# Replace filenames with YOUR aligned rasters and point data.
+# This template intentionally contains no author's private paths or data.
+seed: 42
+output_dir: ../outputs/raster_rf
+data:
+  type: raster
+  rasters:
+    fault_distance: ../data/predictors/fault_distance.tif
+    thermal_proxy: ../data/predictors/thermal_proxy.tif
+    deformation: ../data/predictors/deformation.tif
+  positive_points: ../data/samples/positive.gpkg
+  unlabeled_points: ../data/samples/unlabeled.gpkg
+  block_size: 30000  # projected CRS units, usually metres
+  block_origin: [0, 0]
+  invalid_samples: error
+  additional_nodata: [-9999]
+model:
+  name: random_forest
+  params: {n_estimators: 200, min_samples_leaf: 10, max_leaf_nodes: 200}
+  n_jobs: 4
+preprocess:
+  scaling: center
+  feature_scales: {deformation: 1.0e12}
+training: {positive_weight: 1}
+sampling: {ratio: 3, coverage: 0.90, rounds: null, max_rounds: 10000}
+cv: {strategy: spatial, folds: 5}
+optimizer:
+  name: genetic
+  screening_rounds: 20
+  space:
+    model.n_estimators: {type: int, low: 100, high: 500}
+    model.min_samples_leaf: {type: int, low: 10, high: 50}
+    model.max_leaf_nodes: {type: int, low: 100, high: 500}
+    training.positive_weight: {type: float, low: 1, high: 10}
+    sampling.ratio: {type: int, low: 3, high: 10}
+  options:
+    population_size: 100
+    generations: 50
+    crossover_probability: 0.9
+    mutation_probability: 0.1
+    eta_c: 15
+    eta_m: 20
+    patience: 10
+    tolerance: 1.0e-7
+explain: {enabled: true, method: tree, max_samples: null, bins: 20, clip_percentile: 1, interactions: true, top_interactions: 5}
+prediction: {batch_size: 5000, save_models: false}
+outputs: {csv: true, excel: true, geotiff: true}
+plots:
+  enabled: true
+  formats: [png, pdf]
+  dpi: 600
+  auc: true
+  roc: true
+  maps: true
+  correlation: true
+  capture: true
+  optimization: true
+  shap_importance: true
+  shap_dependence: true
+  shap_interactions: true

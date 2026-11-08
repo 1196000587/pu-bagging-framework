@@ -1,0 +1,50 @@
+# Paths are relative to THIS file, not your terminal's working directory.
+seed: 42
+output_dir: ../outputs/demo_rf
+data:
+  type: csv
+  path: ../data/demo/samples.csv
+  prediction_path: ../data/demo/prediction.csv
+  label_column: label
+  id_column: id
+  features: [distance, thermal_proxy, deformation, surface_temperature, depth_proxy, noise]
+  x_column: x
+  y_column: y
+  coordinate_units: projected
+  block_size: 6000
+model:
+  name: random_forest
+  params: {n_estimators: 30, min_samples_leaf: 2}
+  n_jobs: 1
+preprocess:
+  scaling: none
+  feature_scales: {deformation: 1.0e12}
+training:
+  positive_weight: 1.0
+sampling:
+  ratio: 3
+  coverage: 0.90
+  rounds: null  # calculated AFTER selecting the ratio
+cv:
+  strategy: spatial
+  folds: 3
+optimizer:
+  name: genetic
+  screening_rounds: 2  # quick demo; research template uses 20
+  space:
+    model.max_depth: {type: int, low: 3, high: 8}
+    sampling.ratio: {type: int, low: 2, high: 4}
+    training.positive_weight: {type: float, low: 1, high: 3}
+  options: {population_size: 5, generations: 2, patience: 2}
+prediction:
+  batch_size: 1000
+  save_models: true
+outputs:
+  csv: true
+  excel: false
+plots:
+  enabled: true
+  dpi: 600
+  formats: [png]
+explain:
+  enabled: false  # enable after installing the explain extra

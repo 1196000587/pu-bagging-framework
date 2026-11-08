@@ -1,0 +1,58 @@
+# Original 20-predictor RF configuration, with portable placeholder paths.
+# Prepare your own eligible P/U point pools; no research data are bundled.
+seed: 42
+output_dir: ../outputs/original_study_rf
+data:
+  type: raster
+  rasters:
+    HAF: ../data/predictors/fault_holocene.tif
+    PAF: ../data/predictors/fault_pleistocene.tif
+    HHPIR: ../data/predictors/granite_high.tif
+    LHPIR: ../data/predictors/granite_low.tif
+    AC: ../data/predictors/aeromagnetic.tif
+    GY: ../data/predictors/gravity.tif
+    SC: ../data/predictors/seismic.tif
+    CT: ../data/predictors/crust_thickness.tif
+    LST: ../data/predictors/land_surface_temperature.tif
+    CD: ../data/predictors/curie_depth.tif
+    DR: ../data/predictors/Dilatation_Rate.tif
+    KL: ../data/predictors/kulun_clip.tif
+    Vp/Vs_10km: ../data/predictors/VpVs10km_clip1.tif
+    Vs_4km: ../data/predictors/Vs4km_clip1.tif
+    Vs_30km: ../data/predictors/Vs30m_clip1.tif
+    Vs_20km: ../data/predictors/Vs20km_clip1.tif
+    Vp/Vs_4km: ../data/predictors/VpVs4km_clip1.tif
+    Vp/Vs_30km: ../data/predictors/VpVs30km_clip1.tif
+    Vp/Vs_20km: ../data/predictors/VpVs20km_clip1.tif
+    Vs_10km: ../data/predictors/Vs10km_clip1.tif
+  positive_points: ../data/samples/positive.gpkg
+  unlabeled_points: ../data/samples/unlabeled.gpkg
+  block_size: 30000
+  block_origin: [0, 0]
+  invalid_samples: error
+  additional_nodata: [-9999]
+model:
+  name: random_forest
+  params: {n_estimators: 200, min_samples_leaf: 10, max_leaf_nodes: 200}
+  n_jobs: 4
+  seed_mode: fixed
+preprocess:
+  scaling: center
+  feature_scales: {DR: 1.0e12}
+training: {positive_weight: 1}
+sampling: {ratio: 3, coverage: 0.90, rounds: null, max_rounds: 10000}
+cv: {strategy: spatial, folds: 5}
+optimizer:
+  name: genetic
+  screening_rounds: 20
+  space:
+    model.n_estimators: {type: int, low: 100, high: 500}
+    model.min_samples_leaf: {type: int, low: 10, high: 50}
+    model.max_leaf_nodes: {type: int, low: 100, high: 500}
+    training.positive_weight: {type: float, low: 1, high: 10}
+    sampling.ratio: {type: int, low: 3, high: 10}
+  options: {population_size: 100, generations: 50, mutation_probability: 0.1, crossover_probability: 0.9, eta_c: 15, eta_m: 20, tolerance: 1.0e-7, patience: 10}
+explain: {enabled: true, method: tree, max_samples: null, bins: 20, clip_percentile: 1, interactions: true, top_interactions: 5}
+prediction: {batch_size: 5000, save_models: false}
+outputs: {csv: true, excel: true, geotiff: true}
+plots: {enabled: true, dpi: 600, formats: [png, pdf]}

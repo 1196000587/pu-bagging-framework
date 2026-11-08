@@ -1,0 +1,21 @@
+seed: 42
+output_dir: ../outputs/logistic_grid
+data:
+  type: csv
+  path: ../data/demo/samples.csv
+  features: [distance, thermal_proxy, deformation, surface_temperature, depth_proxy, noise]
+model: {name: logistic_regression}
+preprocess:
+  scaling: standard
+  feature_scales: {deformation: 1.0e12}
+sampling: {ratio: 3, coverage: 0.90}
+cv: {strategy: stratified, folds: 3}
+optimizer:
+  name: grid
+  screening_rounds: 2
+  space:
+    model.C: {type: float, low: 0.1, high: 10, values: [0.1, 1.0, 10.0]}
+    sampling.ratio: {type: int, low: 2, high: 4, values: [2, 4]}
+  options: {max_candidates: 20}
+explain: {enabled: true, method: permutation, max_samples: 40, background_samples: 30}
+plots: {enabled: true, dpi: 600}

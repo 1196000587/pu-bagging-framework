@@ -1,0 +1,31 @@
+# Small run exercising Excel, SHAP dependence/interactions, 600-ppi figures and models.
+seed: 42
+output_dir: ../outputs/full_outputs
+data:
+  type: csv
+  path: ../data/demo/samples.csv
+  prediction_path: ../data/demo/prediction.csv
+  features: [distance, thermal_proxy, deformation, surface_temperature, depth_proxy, noise]
+  x_column: x
+  y_column: y
+model:
+  name: random_forest
+  params: {n_estimators: 25, max_depth: 5, min_samples_leaf: 3}
+preprocess:
+  feature_scales: {deformation: 1.0e12}
+sampling:
+  ratio: 3
+  coverage: 0.90
+cv: {strategy: stratified, folds: 3}
+optimizer: {name: none}
+explain:
+  enabled: true
+  method: tree
+  max_samples: null  # all rows in each fitted training set, matching original logic
+  bins: 20
+  clip_percentile: 1
+  interactions: true
+  top_interactions: 5
+prediction: {save_models: true}
+outputs: {csv: true, excel: true, geotiff: true}
+plots: {enabled: true, dpi: 600, formats: [png, pdf]}
